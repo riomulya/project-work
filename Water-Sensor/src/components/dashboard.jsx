@@ -22,7 +22,9 @@ const waterIcon = new L.Icon({
 const RecenterAutomatically = ({ lat, lng }) => {
   const map = useMap();
   useEffect(() => {
-    map.setView([lat, lng]);
+    if (lat && lng) {
+      map.setView([lat, lng]);
+    }
   }, [lat, lng, map]);
   return null;
 };
@@ -44,7 +46,7 @@ const Dashboard = () => {
           const destination = [-6.200000, 106.816666]; // Ganti dengan koordinat tujuan yang diinginkan
 
           // Setel rute dari posisi saat ini ke tujuan
-          setRoutePath([position.coords, destination]);
+          setRoutePath([[latitude, longitude], destination]);
         },
         (error) => {
           console.error("Error fetching geolocation: ", error);
@@ -56,7 +58,12 @@ const Dashboard = () => {
 
     // Memuat file GeoJSON yang diunggah
     fetch('/hotosm_idn_waterways_points_geojson.geojson') // Path ke file GeoJSON
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => setGeoJsonData(data))
       .catch(error => console.error('Error loading GeoJSON:', error));
   }, []);
@@ -77,11 +84,14 @@ const Dashboard = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker position={position} icon={waterIcon}>
+              
+              {/* Marker Default untuk Menunjukkan Lokasi Awal */}
+              <Marker position={position}>
                 <Popup>
                   Start: Latitude: {position[0]}, Longitude: {position[1]}
                 </Popup>
               </Marker>
+
               <RecenterAutomatically lat={position[0]} lng={position[1]} />
 
               {/* Menggambar rute dari GPS ke tujuan */}
