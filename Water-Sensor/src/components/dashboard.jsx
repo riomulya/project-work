@@ -5,6 +5,7 @@ import {
   Marker,
   Popup,
   GeoJSON,
+  Polyline,
   useMap
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -29,6 +30,7 @@ const RecenterAutomatically = ({ lat, lng }) => {
 const Dashboard = () => {
   const [position, setPosition] = useState([-6.34605, 106.69156]); // Posisi awal
   const [geoJsonData, setGeoJsonData] = useState(null); // State untuk menyimpan data GeoJSON
+  const [routePath, setRoutePath] = useState([]); // State untuk menyimpan rute dari titik GPS ke tujuan
 
   useEffect(() => {
     // Mendapatkan lokasi pengguna saat ini
@@ -37,6 +39,12 @@ const Dashboard = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setPosition([latitude, longitude]);
+
+          // Tentukan titik tujuan (misal koordinat tertentu di jalur air)
+          const destination = [-6.200000, 106.816666]; // Ganti dengan koordinat tujuan yang diinginkan
+
+          // Setel rute dari posisi saat ini ke tujuan
+          setRoutePath([position.coords, destination]);
         },
         (error) => {
           console.error("Error fetching geolocation: ", error);
@@ -75,6 +83,11 @@ const Dashboard = () => {
                 </Popup>
               </Marker>
               <RecenterAutomatically lat={position[0]} lng={position[1]} />
+
+              {/* Menggambar rute dari GPS ke tujuan */}
+              {routePath.length > 1 && (
+                <Polyline positions={routePath} color="red" />
+              )}
 
               {/* Menambahkan jalur air menggunakan GeoJSON jika datanya sudah dimuat */}
               {geoJsonData && (
